@@ -38,7 +38,6 @@ var loopGameloop;
 var loopPipeloop;
 
 window.addEventListener("message", (ev) => {
-   console.log("IFRAME MESSAGE: ", ev.data)
    if (ev.data.gameMessage) {
       if (ev.data.sound === true) {
          window.buzz.all().unmute()
