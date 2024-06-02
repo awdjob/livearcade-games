@@ -37,6 +37,16 @@ buzz.all().setVolume(volume);
 var loopGameloop;
 var loopPipeloop;
 
+window.addEventListener("message", (ev) => {
+   console.log("IFRAME MESSAGE: ", ev.data)
+   if (ev.data.gameMessage) {
+      if (ev.data.sound === true) {
+         window.buzz.all().unmute()
+      } else if (ev.data.sound === false) {
+         window.buzz.all().mute()
+      }
+   }
+})
 $(document).ready(function() {
    if(window.location.search == "?debug")
       debugmode = true;
@@ -362,7 +372,6 @@ function playerDead()
       soundHit.play().bindOnce("ended", function() {
          soundDie.play().bindOnce("ended", function() {
             showScore();
-            window.parent.postMessage({ gameMessage: true, score }, "*")
          });
       });
    }
@@ -413,6 +422,8 @@ function showScore()
 
    //make the replay button clickable
    replayclickable = true;
+
+   window.parent.postMessage({ gameMessage: true, score }, "*")
 }
 
 $("#replay").click(function() {
