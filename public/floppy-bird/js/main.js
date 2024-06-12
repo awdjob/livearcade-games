@@ -47,6 +47,7 @@ window.addEventListener("message", (ev) => {
    }
 })
 $(document).ready(function() {
+   window.parent.postMessage({ gameMessage: true, gameReady: true }, "*")
    if(window.location.search == "?debug")
       debugmode = true;
    if(window.location.search == "?easy")
