@@ -16,7 +16,13 @@ let direction = 'RIGHT';
 let food = generateFood();
 let gameLoop;
 
+document.addEventListener("DOMContentLoaded", () => {
+    window.parent.postMessage({ gameMessage: true, gameReady: true }, "*")
+})
+
 function startGame() {
+    score = 0;
+    window.parent.postMessage({ gameMessage: true, gameStart: true }, "*")
     document.getElementById('startModal').style.display = 'none';
     gameLoop = setInterval(update, speed);
 }
@@ -123,6 +129,7 @@ function checkCollision() {
         head.y >= canvas.height ||
         snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y)
     ) {
+        window.parent.postMessage({ gameMessage: true, score }, "*")
         document.getElementById('gameOver').style.display = 'block';
         clearInterval(gameLoop);
     }
