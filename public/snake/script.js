@@ -144,6 +144,7 @@ function restartGame() {
     document.getElementById('gameOver').style.display = 'none';
     food = generateFood();
     gameLoop = setInterval(update, speed);
+    window.parent.postMessage({ gameMessage: true, gameStart: true }, "*")
 }
 
 function update() {
