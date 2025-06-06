@@ -16,9 +16,39 @@ let direction = 'RIGHT';
 let food = generateFood();
 let gameLoop;
 
+// Initialize all event listeners when the DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
-    window.parent.postMessage({ gameMessage: true, gameReady: true }, "*")
-})
+    // Notify parent window that game is ready
+    window.parent.postMessage({ gameMessage: true, gameReady: true }, "*");
+
+    // Add button event listeners
+    document.getElementById('startButton').addEventListener('click', startGame);
+    document.getElementById('restartButton').addEventListener('click', restartGame);
+    
+    // Add direction button listeners
+    document.getElementById('upBtn').addEventListener('click', () => {
+        const event = { key: 'ArrowUp' };
+        changeDirection(event);
+    });
+
+    document.getElementById('downBtn').addEventListener('click', () => {
+        const event = { key: 'ArrowDown' };
+        changeDirection(event);
+    });
+
+    document.getElementById('leftBtn').addEventListener('click', () => {
+        const event = { key: 'ArrowLeft' };
+        changeDirection(event);
+    });
+
+    document.getElementById('rightBtn').addEventListener('click', () => {
+        const event = { key: 'ArrowRight' };
+        changeDirection(event);
+    });
+
+    // Add keyboard listener
+    document.addEventListener('keydown', changeDirection);
+});
 
 function startGame() {
     score = 0;
@@ -35,30 +65,6 @@ function generateFood() {
     } while (snake.some(segment => segment.x === foodX && segment.y === foodY));
     return { x: foodX, y: foodY };
 }
-
-document.addEventListener('keydown', changeDirection);
-
-// Add button controls
-document.getElementById('upBtn').addEventListener('click', () => {
-    const event = { key: 'ArrowUp' };
-    changeDirection(event);
-});
-
-document.getElementById('downBtn').addEventListener('click', () => {
-    const event = { key: 'ArrowDown' };
-    changeDirection(event);
-});
-
-document.getElementById('leftBtn').addEventListener('click', () => {
-    const event = { key: 'ArrowLeft' };
-    changeDirection(event);
-});
-
-document.getElementById('rightBtn').addEventListener('click', () => {
-    const event = { key: 'ArrowRight' };
-    changeDirection(event);
-});
-
 
 function changeDirection(event) {
     if (event.preventDefault) {
