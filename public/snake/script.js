@@ -9,12 +9,59 @@ canvas.width = canvas.height = BOX_SIZE * GRID_SIZE;
 // Update box constant to use our fixed size
 const box = BOX_SIZE;
 
+// Speed system constants
+const SPEED = {
+    MAX: 150,    // Starting speed (slowest)
+    MIN: 50,     // Fastest speed
+    DECREMENT: 5, // How much to decrease by each food
+    RANDOM_THRESHOLD: 200  // Score at which to switch to random speeds
+};
+
 let score = 0;
-let speed = 150;
+let speed = SPEED.MAX;
 let snake = [{ x: box * 5, y: box * 5 }];
 let direction = 'RIGHT';
 let food = generateFood();
 let gameLoop;
+let moveQueue = []; // Queue for pending moves
+
+const keyBuffer = [];
+const MAX_BUFFER_SIZE = 2;
+
+// Define valid U-turn patterns based on current direction
+const uTurnPatterns = {
+    'RIGHT': [['ArrowUp', 'ArrowLeft'], ['ArrowDown', 'ArrowLeft']],
+    'LEFT': [['ArrowUp', 'ArrowRight'], ['ArrowDown', 'ArrowRight']],
+    'UP': [['ArrowLeft', 'ArrowDown'], ['ArrowRight', 'ArrowDown']],
+    'DOWN': [['ArrowLeft', 'ArrowUp'], ['ArrowRight', 'ArrowUp']]
+};
+
+function isUTurnPattern(keys, currentDirection) {
+    if (keys.length !== 2) return false;
+
+    const patterns = uTurnPatterns[currentDirection];
+    if (!patterns) return false;
+
+    // Check if the keys match any valid pattern (order doesn't matter for detection)
+    return patterns.some(pattern =>
+        (keys.includes(pattern[0]) && keys.includes(pattern[1]))
+    );
+}
+
+function getUTurnSequence(keys, currentDirection) {
+    const patterns = uTurnPatterns[currentDirection];
+    if (!patterns) return null;
+
+    // Find the matching pattern
+    const matchingPattern = patterns.find(pattern =>
+        keys.includes(pattern[0]) && keys.includes(pattern[1])
+    );
+
+    if (!matchingPattern) return null;
+
+    // Return the sequence of moves needed for the U-turn
+    return matchingPattern;
+}
 
 // Initialize all event listeners when the DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
@@ -24,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add button event listeners
     document.getElementById('startButton').addEventListener('click', startGame);
     document.getElementById('restartButton').addEventListener('click', restartGame);
-    
+
     // Add direction button listeners
     document.getElementById('upBtn').addEventListener('click', () => {
         const event = { key: 'ArrowUp' };
@@ -72,21 +119,26 @@ function changeDirection(event) {
     }
 
     const key = event.key;
+
     const oppositeDirections = {
         UP: 'DOWN',
         DOWN: 'UP',
         LEFT: 'RIGHT',
         RIGHT: 'LEFT'
     };
+
     const newDirection = {
         ArrowUp: 'UP',
         ArrowDown: 'DOWN',
         ArrowLeft: 'LEFT',
         ArrowRight: 'RIGHT'
     }[key];
+
     if (newDirection && newDirection !== oppositeDirections[direction]) {
         direction = newDirection;
     }
+
+    moveQueue.push(direction);
 }
 
 function drawSnake() {
@@ -106,6 +158,24 @@ function drawFood() {
 }
 
 function moveSnake() {
+    // If we have queued moves, process the next one
+    if (moveQueue.length > 0) {
+        const nextMove = moveQueue.shift();
+        
+        const oppositeDirections = {
+            UP: 'DOWN',
+            DOWN: 'UP',
+            LEFT: 'RIGHT',
+            RIGHT: 'LEFT'
+        };
+
+        console.log(nextMove, direction, oppositeDirections[direction])
+    
+        if (nextMove !== oppositeDirections[direction]) {
+            direction = nextMove;
+        }
+    }
+
     const head = { ...snake[0] };
     if (direction === 'UP') head.y -= box;
     else if (direction === 'DOWN') head.y += box;
@@ -118,7 +188,19 @@ function moveSnake() {
         score += 10;
         document.getElementById('score').innerText = `Score: ${score}`;
         food = generateFood();
-        if (speed > 50) speed -= 5;
+        
+        // Update speed based on score
+        if (score < SPEED.RANDOM_THRESHOLD) {
+            // Steady decrement until threshold
+            if (speed > SPEED.MIN) {
+                speed -= SPEED.DECREMENT;
+            }
+        } else {
+            // Random speed between MIN and MAX
+            speed = Math.floor(Math.random() * (SPEED.MAX - SPEED.MIN + 1)) + SPEED.MIN;
+        }
+        
+        // Update game loop with new speed
         clearInterval(gameLoop);
         gameLoop = setInterval(update, speed);
     } else {
@@ -145,7 +227,8 @@ function restartGame() {
     snake = [{ x: box * 5, y: box * 5 }];
     direction = 'RIGHT';
     score = 0;
-    speed = 150;
+    speed = SPEED.MAX;  // Reset to initial speed
+    moveQueue = [];
     document.getElementById('score').innerText = `Score: 0`;
     document.getElementById('gameOver').style.display = 'none';
     food = generateFood();
