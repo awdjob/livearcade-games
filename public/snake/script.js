@@ -11,7 +11,7 @@ const box = BOX_SIZE;
 
 // Speed system constants
 const SPEED = {
-    MAX: 150,    // Starting speed (slowest)
+    MAX: 100,    // Starting speed (slowest)
     MIN: 50,     // Fastest speed
     DECREMENT: 5, // How much to decrease by each food
     RANDOM_THRESHOLD: 200  // Score at which to switch to random speeds
@@ -196,8 +196,7 @@ function moveSnake() {
                 speed -= SPEED.DECREMENT;
             }
         } else {
-            // Random speed between MIN and MAX
-            speed = Math.floor(Math.random() * (SPEED.MAX - SPEED.MIN + 1)) + SPEED.MIN;
+            speed = SPEED.MIN;
         }
         
         // Update game loop with new speed
